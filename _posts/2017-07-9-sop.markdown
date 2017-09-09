@@ -122,3 +122,5 @@ employee.setDesignation(Designation.SENIOR_SOFTWARE_ENGINEER);		// Inject Design
 assertTrue(employee.getIncome() == 130l);
 
 {% endhighlight %}
+
+Reference - [OODesign](http://www.oodesign.com/single-responsibility-principle.html)
