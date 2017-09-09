@@ -1,0 +1,124 @@
+---
+layout: post
+title:  "What is SRP?"
+description: SRP stands for Single Responsibility Principle. It's the 'S' in SOLID, an acronym for five basic design principles in Software Programming. 
+date:   2017-09-10 10:00:00 +0530
+categories: design-principle
+img: karna.jpg
+categories: [design-principle]
+color: 1976D2
+author: Shashi bhushan
+---
+SOLID is an acronym in Software programming, which comprises of 5 main principles used in software development.
+The first one of these is 'Single Responsibility Principle'.
+
+It states that a module or a class should handle only one responsility i.e. the class should have responsibility of performing a single functionality and that single functionality should entirely be performed by the class. There should not be a separate module or class handling the same functionality.
+
+A responsibility can be thought of a reason to change this class in future. if there can be more than one reasons to make any change in the class, then the class is has more than one responsibilities.
+A side effect of this change can be that while changing code pertaining to the first responsibility, you might end up making the change for the second responsibility as well.
+
+Lets take for Example an Employee class, meant to be used as a Bean to save Employees' ids, designation and their respective income based on their designation.
+
+{% highlight java %}
+interface IEmployee {
+	void setId(int id);
+	void setDesignation(String designation);
+	long getIncome();
+}
+
+class Employee implements IEmployee {
+	private int id;
+	private String designation;
+	private long income;
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public void setDesignation(String designation) {
+		this.designation = designation;
+	}
+
+	public long getIncome() {
+		if(this.designation.equals("Software Developer")) {
+			this.income = 100l;
+		} else if(this.designation.equals("Senior Software Developer")) {
+			this.income = 130l;
+		}
+		return this.income;
+	}
+}
+{% endhighlight %}
+
+
+At first it might seem that the class is just a storing an Employee's id, designation and income details.
+Looking closely, one might figure out that the class does not follow SOP in sense that the class holds not just this information, but also the logic of how to compute income based on ones designation.
+
+Let's see why it does not follow Single Responsibility Principle.
+Remember that I wrote there can be only one reason for a class to change. Let's count in how many scenarios the class has to change.
+- If a new designation is added, I have to add another if statement inside `getIncome()` method.
+- If the salary structure is changed, say from 100 to 150 for a Software Engineer, I have to make the change inside `getIncome()` method.
+
+Well, how we can approach this problem. We already know that Designation can be `SOFTWARE_ENGINEER` and `SENIOR_SOFTWARE_ENGINEER`. So the domain for Designations is fixed.
+Shall we create an enum for Designations. It seems this is the right choice, given the fixed domain nature of the designations.
+
+Well, what if we create an enum for Designations and their respective incomes and use `Designation.valueOf(designation).getIncome()` to compute the income in our Employee class.
+This just might work, but the core problem with this approach is the String representation of designation. What if i pass 'SOFTWARE-ENGINEER' instead of 'SOFTWARE_ENGINEER' while calling `setDesignation()`.
+This will result in an `IllegalArgumentException` when i call `getIncome()` because there is no enum value named `SOFTWARE-ENGINEER'.
+
+So, we will pass Designation object directly into `setDesignation()` method. Ahha, Dependency Injection to the rescue.
+
+{% highlight java %}
+
+interface IEmployee {
+    void setId(int id);
+    void setDesignation(Designation designation);
+    long getIncome();
+}
+
+class Employee implements IEmployee {
+    private int id;
+    private long income;
+    private Designation designation;
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setDesignation(Designation designation) {
+    	this.designation = designation;
+    }
+
+    public long getIncome() {
+        return designation.getIncome();
+    }
+}
+
+enum Designation {
+    SOFTWARE_ENGINEER(100l), SENIOR_SOFTWARE_ENGINEER(130l);
+
+    private long income;
+
+    Designation(long income) {
+        this.income = income;
+    }
+
+    public long getIncome() {
+        return this.income;
+    }
+}
+
+{% endhighlight %}
+
+Now, the Employee class is acting as a bean, Saving only the values pertaining to the `Employee` and is now delegating the functionality to getIncome to enum `Designation`.
+On the other hand, `Designation` have all the Possible designation objects based on our initial use case. Their income values are also passed on while creating the enum objects.
+
+Run this 3 liner if you want to test the code.
+
+{% highlight java %}
+
+Employee employee = new Employee();
+employee.setDesignation(Designation.SENIOR_SOFTWARE_ENGINEER);		// Inject Designation object from our Test class
+assertTrue(employee.getIncome() == 130l);
+
+{% endhighlight %}
