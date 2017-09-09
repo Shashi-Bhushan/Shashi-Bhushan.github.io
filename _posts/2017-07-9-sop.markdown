@@ -4,8 +4,8 @@ title:  "What is SRP?"
 description: SRP stands for Single Responsibility Principle. It's the 'S' in SOLID, an acronym for five basic design principles in Software Programming. 
 date:   2017-09-10 10:00:00 +0530
 categories: design-principle
-img: karna.jpg
-categories: [design-principle]
+img: design-principle.jpg
+categories: [design-principle,oops,srp,java]
 color: 1976D2
 author: Shashi bhushan
 ---
