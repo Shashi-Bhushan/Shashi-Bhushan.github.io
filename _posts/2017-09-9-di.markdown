@@ -1,0 +1,110 @@
+---
+layout: post
+title:  "What is DI?"
+description: DI stands for Dependency Injection. It's the 'I' in SOLID, an acronym for five basic design principles in Software Programming. 
+date:   2017-09-09 10:00:00 +0530
+categories: design-principle
+img: design-principle.jpg
+categories: [design-principle,oops,di,java]
+color: 1976D2
+author: Shashi bhushan
+---
+SOLID is an acronym in Software programming, which comprises of 5 main principles used in software development.
+I in SOLID stands for Dependency Injection.
+
+Dependency Injection means the class that requires an object for it to work i.e. object on which it depends, the class does not create the object itself. Instead, this object is passed to the class either via it's constructor or via a setter method.
+Let's take an example of a Triangle class. Remember that a Triangle requires 3 points `(x, y)`. 
+
+{% highlight java %}
+
+interface IShape {
+    String draw();
+}
+
+class Point {
+
+    private int x, y;
+
+    Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("(%d, %d)", x, y);
+    }
+}
+
+
+class Triangle implements IShape {
+    Point a, b,c ;
+
+    Triangle(int x1, int x2, int x3, int y1, int y2, int y3) {
+        a = new Point(x1, y1);
+        b = new Point(x2, y2);
+        c = new Point(x3, y3);
+    }
+
+    public String draw() {
+        return String.format("A%s, B%s, C%s", a, b, c);
+    }
+}
+
+{% endhighlight %}
+
+Now, in the `Triangle` constructor, I'm passing in the coordinates and using these coordinates to create `Point` object.
+The points that I want for my Triangle class, I will pass them when I'm creating Triangle object as integers. I'm already using Dependency Injection here when I'm passing the coordinates in the constructor. 
+Triangle depends on Point for it's creation. Point depends on coordinates for it's creation. I'm passing dependency for Point and creating Point object myself using the constructor for Point class.
+
+So, dependency graph for Triangle would be
+
+	`Triangle` <- `Point` <- `(x,y)`
+
+Problem with creating `Point` object inside constructor is that it gives extra responsibility to my `Traingle` class. Let's suppose if i want my `Point` object to be only a positive, Then i have to add a check in Triangle constructor in order to make sure that the integers passed are positive.
+Let's change the code a bit, and pass the Dependency for `Triangle` in it's constructor.
+
+
+{% highlight java %}
+
+interface IShape {
+    String draw();
+}
+
+class Point {
+
+    private int x, y;
+
+    Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("(%d, %d)", x, y);
+    }
+}
+
+
+class Triangle implements IShape {
+    Point a, b,c ;
+
+    Triangle(Point a, Point b, Point c) {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+    }
+
+    public String draw() {
+        return String.format("A%s, B%s, C%s", a, b, c);
+    }
+}
+
+{% endhighlight %}
+
+A big advantage of using DI is that it makes testing very easy.
+Take for example, `Triangle` class. If i add an area method in the class and I have to test the area method, I need not to worry about Point object creation.
+Because I will be creating Point object inside my Test class and Probably will check beforehand if the Point object is created as expected. So, if my test case fails, i would know for sure that Point objects used for calculating area are indeed correct and the logic in area function is not working.
+
+Another advantage I see is the class will have minimal responsibilities, following Single Responsibility Principle. 
