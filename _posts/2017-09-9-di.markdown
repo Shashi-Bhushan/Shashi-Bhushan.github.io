@@ -6,7 +6,7 @@ date:   2017-09-09 10:00:00 +0530
 categories: design-principle
 img: design-principle.jpg
 categories: [design-principle,oops,di,java]
-color: 1976D2
+color: 187612
 author: Shashi bhushan
 ---
 SOLID is an acronym in Software programming, which comprises of 5 main principles used in software development.

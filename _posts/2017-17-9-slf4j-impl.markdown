@@ -1,0 +1,103 @@
+---
+layout: post
+title:  "Creating a Logging Framework"
+description: In this post, I will be describing about how to create your own implementation that can work with SLF4J and why consider not building one. 
+date:   2017-09-17 10:00:00 +0530
+categories: java
+img: design-principle.jpg
+categories: [java]
+color: 2222D2
+author: Shashi bhushan
+---
+
+Logging is an important part of development phase. As a developer, we like to put debug and info logs in our applications and error logs when there is any exception thrown in our program.
+
+For that, I'm sure you must be using SLF4j. It stands for Simple Logging Facade For Java and as the name implies, it acts as a facade or an abstraction for various logging frameworks in java.
+
+Usually, there are three modules you need in order to make SLF4J work for you.
+
+1.  SLF4J
+SLF4J API. It abstracts away the logic for using a specific logger framework. Instead, you access your logger using `org.slf4j.Logger` class.
+
+2.  Adaptation Layer
+It binds SLF4J to your Logger Framework.
+
+3.  Logging Framework
+Your Logger Framework that you want to integrate with your application. For eg log4j.
+
+Although, you can directly use log4j to log your code, but that's not recommended. 
+The reason for that is, SLF4J is an abstraction layer and not a logging implementation. It means that if you're writing a library and you use SLF4J, you can give that library to someone else to use and they can choose which logging implementation to use with SLF4J e.g. log4j or the Java logging API. You don't make that decision for your user.
+SLF4J does not replace Logging Framework, it works together with a Logging Framework to remove dependency of your project on a specific Logger Implementation.
+
+Let's try to create our own implementation of a Logging Framework, that can work with SLF4j, just to understand how SLF4j works internally.
+Let's take it step by step. 
+
+<h1>Step One</h1>
+<blockquote>
+Create a class "StaticLoggerBinder" inside package "org.slf4j.impl".
+</blockquote>
+
+This class is the entry point for SLF4j. In your pom.xml, when you specify slf4j as a dependency, SLF4J will search for this class to find which logging implementation you are using.
+
+Create a singleton instance of your `StaticLoggerBinder` in your class.
+
+Implement a Method `getSingleton`.
+
+{% highlight java %}
+public static final StaticLoggerBinder getSingleton() {
+    return SINGLETON;
+}
+{% endhighlight %}
+
+<h1>Step Two</h1>
+<blockquote>
+Create a class "LoggerFactoryImpl" that implements "org.slf4j.ILoggerFactory".
+</blockquote>
+
+This class will act as a Factory for creating Logger class objects. Inside this class, you will create a `Map<String, Logger>`, where key is name of the class for which you want a Logger and it's value is the corresponding Logger object.
+
+From SLF4J's prespective, when you do `LoggerFactory.getLogger(MyClass.class)`, SLF4J will delegate this request to your LoggerFactoryImpl. If the corresponsing Logger object exists, it will be returned otherwise, a new Logger Object is created, added to map and then returned.
+
+<h1>Step Three</h1>
+<blockquote>
+Create a class "LoggerImpl" that implements "org.slf4j.Logger".
+</blockquote>
+
+This class will act as the Logger class, which logs your request.
+
+When you do `logger.debug("i want this to be logged")`, the request will come to this class. In order to process this request, you need to implement `org.slf4j.Logger.debug` method in your class and log it the way you want.
+
+<h1>Step Four</h1>
+<blockquote>
+Connect StaticLoggerBinder and LoggerFactoryImpl
+</blockquote>
+
+So far, I have not described how to make connection between `StaticLoggerBinder` and your `LoggerFactoryImpl` class.
+To make this connection, create an object of `LoggerFactoryImpl` and write a method `getLoggerFactory()` in `StaticLoggerBinder`.
+
+
+{% highlight java %}
+public ILoggerFactory getLoggerFactory() {
+    return this.loggerFactory;
+}
+{% endhighlight %}
+
+Remember to code for interface when writing this implementation. This method returns `ILoggerFactory` and not `LoggerFactoryImpl`. That makes users of your logging implementation dependent only on SLF4J API.
+
+That's all that you need to code your own Logging Implementation for SLF4J. But I never said it will be an efficient one.
+
+For starters, it merged your Adaptation Layer and Logging Framework into one.
+
+Secondly, I have not even started implementing the Persistence layer for the Logging Implementation. You didn't went through all the trouble to just `System.out.println` your logs. That could have been done in one line right. ;)
+
+Also, Your need to handle problems like how to handle concurrent requests, when multiple classes are asking for a Logger Objects from your LoggerFactory. What about Log Levels.
+
+All these issues results in having your own implementation for SLF4J not worth your time. It has already been handled by existing Logging Implementations.
+
+Why Reinvent the wheel.
+
+
+There's one thing about SLF4J that I have been saving for last. Remember, when I described that you need to create `StaticLoggerBinder` inside `org.slf4j.impl` only. The reason for that is when SLF4J is loaded, it will search for class `org.slf4j.impl.StaticLoggerBinder` in current JVM instance. 
+As there can be only one instance of such class in one JVM (which is your class), SLF4J will find your class easily. It is because of this reason that SLF4J does not suffer from class loader problem observed with Jakarta Commons Logging (JCL) and it is because of this reason that it's said to use only one implementation of SLF4J logger library. 
+
+P.S. Feel Free to explore the code on [Github](https://github.com/Shashi-Bhushan/Logging-Framework), so that you don't have to write it from scratch. :)
