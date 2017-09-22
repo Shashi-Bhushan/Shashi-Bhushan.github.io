@@ -19,11 +19,38 @@ Usually, there are three modules you need in order to make SLF4J work for you.
 1.  SLF4J
 SLF4J API. It abstracts away the logic for using a specific logger framework. Instead, you access your logger using `org.slf4j.Logger` class.
 
+Following entry in pom.xml belongs to SLF4J API.
+{% highlight xml %}
+<dependency>
+	<groupId>org.slf4j</groupId>
+	<artifactId>slf4j-api</artifactId>
+	<version>${slf4jVersion}</version>
+</dependency>
+{% endhighlight %}
+
 2.  Adaptation Layer
 It binds SLF4J to your Logger Framework.
 
+Following entry in pom.xml belongs to Adaptation Layer.
+{% highlight xml %}
+<dependency>
+	<groupId>org.slf4j</groupId>
+	<artifactId>slf4j-log4j12</artifactId>
+	<version>${slf4jVersion}</version>
+</dependency>
+{% endhighlight %}
+
 3.  Logging Framework
 Your Logger Framework that you want to integrate with your application. For eg log4j.
+
+Following entry in pom.xml belongs to Logging Implementation.
+{% highlight xml %}
+<dependency>
+	<groupId>log4j</groupId>
+	<artifactId>log4j</artifactId>
+	<version>${log4jVersion}</version>
+</dependency>
+{% endhighlight %}
 
 Although, you can directly use log4j to log your code, but that's not recommended. 
 The reason for that is, SLF4J is an abstraction layer and not a logging implementation. It means that if you're writing a library and you use SLF4J, you can give that library to someone else to use and they can choose which logging implementation to use with SLF4J e.g. log4j or the Java logging API. You don't make that decision for your user.
@@ -88,7 +115,7 @@ That's all that you need to code your own Logging Implementation for SLF4J. But 
 
 For starters, it merged your Adaptation Layer and Logging Framework into one.
 
-Secondly, I have not even started implementing the Persistence layer for the Logging Implementation. You didn't went through all the trouble to just `System.out.println` your logs. That could have been done in one line right. ;)
+Secondly, I have not even started implementing the Persistence layer for the Logging Implementation. Unlike me, you don't want to go through all the trouble to just `System.out.println` your logs. That could have been done in one line right. ;)
 
 Also, Your need to handle problems like how to handle concurrent requests, when multiple classes are asking for a Logger Objects from your LoggerFactory. What about Log Levels.
 
